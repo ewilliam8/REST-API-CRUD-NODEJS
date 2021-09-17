@@ -1,62 +1,7 @@
-import { Sequelize, Op } from 'sequelize';
+import { Op } from 'sequelize';
 import { error, output } from '../utils';
 import { Crud } from '../models/Crud';
-import { BigNumber } from 'bignumber.js';
-import moment, { Moment } from 'moment';
-
-
-
-export const getTransactionGraph = async (r) => {
-  try {
-    const poolAddress: string = r.params.pool;
-    const graphType: string = r.params.graph;
-    const startInterval: string = r.params.interval;
-    const timestampNow = new Date().valueOf();
-
-    console.log(poolAddress, ' ', graphType, ' ', startInterval);
-
-    let intervalsAmount: number;
-    let timeBetweenIntervals: number;
-
-
-    let getData: any = [];
-    let dataArray = [];
-
-    for (let interval = 1; interval <= intervalsAmount; interval++) {
-      let mean = new BigNumber(0);
-      getData = await Crud.findAll({
-        attributes: [[Sequelize.literal(`ROUND(AVG("${graphType}"), 0)`), 'value']],
-        where: {
-          createdAt: {
-            [Op.between]: [
-              timestampNow - timeBetweenIntervals * interval,
-              timestampNow - timeBetweenIntervals * (interval - 1),
-            ],
-          },
-          pool: poolAddress,
-        },
-        raw: true,
-      });
-
-      for (let record of getData) {
-        if (record.value) {
-          mean = mean.plus(new BigNumber(record.value));
-        }
-      }
-
-      let dataForPeriod = {
-        value: mean.toString(),
-        createdAt: new Date(timestampNow - timeBetweenIntervals * interval),
-      };
-      dataArray.push(dataForPeriod);
-    }
-
-    return output({ data: dataArray.reverse() });
-  } catch (err) {
-    console.log(err);
-    return error(500000, 'Failed to get transactions graph', null);
-  }
-};
+import moment from 'moment';
 
 export const createLine = async (r) => {
     try {
