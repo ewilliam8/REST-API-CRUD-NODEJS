@@ -1,4 +1,3 @@
-# Citadel Backend
 
 # Query methods
 
